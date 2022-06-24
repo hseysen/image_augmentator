@@ -1,6 +1,5 @@
-import cv2
 import os
-from utils import augmentate_rotation, augmentate_flip, draw_annotations
+from utils import *
 
 
 DRAW_BBOXES = True
@@ -29,6 +28,8 @@ def main():
             original_anns = [list(map(float, a.strip('\n').split(' '))) for a in f.readlines()]
         target_angle = 45
         target_flip = "v"
+        target_noise = 0.005
+        # TODO: name files automatically and more clearly
 
         # Rotation augmentation
         rotated_img, rotated_ann, _, _ = augmentate_rotation(original_img, original_anns, target_angle)
@@ -46,6 +47,15 @@ def main():
         cv2.imwrite(os.path.join(folder_images, f"flipped_{target_flip}_rotated_{target_angle}_{i.name}"), flipped_img)
         with open(os.path.join(folder_anns, f"flipped_{target_flip}_rotated_{target_angle}_{a.name}"), "w") as f:
             for ann in flipped_ann:
+                f.write(" ".join(map(str, ann)) + "\n")
+
+        # Salt and pepper noise augmentation on the flipped image to test scalability
+        noisy_img, noisy_ann = augmentate_saltnpeppernoise(flipped_img, flipped_ann, target_noise)
+        if DRAW_BBOXES:
+            noisy_img = draw_annotations(noisy_img, noisy_ann, BBOX_COLOR, BBOX_THICK)
+        cv2.imwrite(os.path.join(folder_images, f"noisy_{int(target_noise*1000)}_flipped_{target_flip}_rotated_{target_angle}_{i.name}"), noisy_img)
+        with open(os.path.join(folder_anns, f"noisy_{int(target_noise*1000)}_flipped_{target_flip}_rotated_{target_angle}_{a.name}"), "w") as f:
+            for ann in noisy_ann:
                 f.write(" ".join(map(str, ann)) + "\n")
 
         # TODO: Make a function for saving images+annotations to disk
