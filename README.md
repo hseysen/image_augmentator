@@ -1,5 +1,5 @@
 # Image Augmentator
-Just a handy script I've written to help me augmentate image data for training of Machine Learning models. Currently, only supports YoloV5 annotations, but might work on adding other formats as well in the future.
+Just a handy script I've written to help me augmentate image data for training of Machine Learning models. Currently, only supports YOLO annotations, but might work on adding other formats as well in the future.
 
 For now, the augmentator only performs rotation and flipping, but more features will be added later.
 

@@ -37,4 +37,8 @@ def cvtoyolo(x1, y1, x2, y2, h, w):
     center_bbox_x = (x1 + x2) / 2
     center_bbox_y = (y1 + y2) / 2
 
-    return round(center_bbox_x / w, 6), round(center_bbox_y / h, 6), round(bbox_w / w, 6), round(bbox_h / h, 6)
+    return [round(center_bbox_x / w, 10), round(center_bbox_y / h, 10), round(bbox_w / w, 10), round(bbox_h / h, 10)]
+
+
+def clamp_value(val, minclamp, maxclamp):
+    return max(minclamp, min(maxclamp, val))

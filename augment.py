@@ -1,64 +1,95 @@
+import argparse
 import os
+import random
 from utils import *
 
 
-DRAW_BBOXES = True
 BBOX_COLOR = (0, 122, 255)
 BBOX_THICK = 4
 
 
+def save_to_disk(image, annotation, name, i_folder, a_folder):
+    cv2.imwrite(os.path.join(i_folder, name + ".jpg"), image)
+    with open(os.path.join(a_folder, name + ".txt"), "w") as f:
+        for ann in annotation:
+            f.write(" ".join(map(str, ann)) + "\n")
+
+
 def main():
-    # TODO: add argparse
-    folder_images = "./images"
-    folder_anns = "./annotations"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--folder-images", type=str, required=False, default="./images")
+    parser.add_argument("--folder-anns", type=str, required=False, default="./annotations")
+    parser.add_argument("--rotate-min", type=float, required=False, default=0)
+    parser.add_argument("--rotate-max", type=float, required=False, default=180)
+    parser.add_argument("--flip", type=bool, required=False, default=True)
+    parser.add_argument("--noise", type=float, required=False, default=0.005)
+    parser.add_argument("--bilateral", type=bool, required=False, default=False)
+    parser.add_argument("--gaussian", type=bool, required=False, default=False)
+    parser.add_argument("--shift-min", type=float, required=False, default=0)
+    parser.add_argument("--shift-max", type=float, required=False, default=30)
+    parser.add_argument("--augs", type=int, required=False, default=5)
+    parser.add_argument("--draw-bbox", type=bool, required=False, default=False)
+
+    args = parser.parse_args()
 
     imgs = []
-    for i in os.scandir(folder_images):
+    for i in os.scandir(args.folder_images):
         imgs.append(i)
 
     anns = []
-    for a in os.scandir(folder_anns):
+    for a in os.scandir(args.folder_anns):
         anns.append(a)
 
     for i, a in zip(imgs, anns):
+        fname = i.name[:i.name.rfind(".")]
+
         # Extract data from files and set up augmentation parameters
-        # TODO: hook this up to argparse and perform range for each augmentation rather than one value
         original_img = cv2.imread(i.path)
         with open(a.path, "r") as f:
             original_anns = [list(map(float, a.strip('\n').split(' '))) for a in f.readlines()]
-        target_angle = 45
-        target_flip = "v"
-        target_noise = 0.005
         # TODO: name files automatically and more clearly
 
-        # Rotation augmentation
-        rotated_img, rotated_ann, _, _ = augmentate_rotation(original_img, original_anns, target_angle)
-        if DRAW_BBOXES:
-            rotated_img = draw_annotations(rotated_img, rotated_ann, BBOX_COLOR, BBOX_THICK)
-        cv2.imwrite(os.path.join(folder_images, f"rotated_{target_angle}_{i.name}"), rotated_img)
-        with open(os.path.join(folder_anns, f"rotated_{target_angle}_{a.name}"), "w") as f:
-            for ann in rotated_ann:
-                f.write(" ".join(map(str, ann)) + "\n")
+        augs_for_this = random.randint(1, args.augs)
 
-        # Flip augmentation on the rotated image to test scalability
-        flipped_img, flipped_ann = augmentate_flip(rotated_img, rotated_ann, target_flip)
-        if DRAW_BBOXES:
-            flipped_img = draw_annotations(flipped_img, flipped_ann, BBOX_COLOR, BBOX_THICK)
-        cv2.imwrite(os.path.join(folder_images, f"flipped_{target_flip}_rotated_{target_angle}_{i.name}"), flipped_img)
-        with open(os.path.join(folder_anns, f"flipped_{target_flip}_rotated_{target_angle}_{a.name}"), "w") as f:
-            for ann in flipped_ann:
-                f.write(" ".join(map(str, ann)) + "\n")
+        for aug_iter in range(augs_for_this):
+            new_img = original_img.copy()
+            new_ann = original_anns.copy()
+            # Rotation augmentation
+            target_angle = random.random() * (args.rotate_max - args.rotate_min) + args.rotate_min
+            new_img, new_ann, _, _ = augmentate_rotation(new_img, new_ann, target_angle)
 
-        # Salt and pepper noise augmentation on the flipped image to test scalability
-        noisy_img, noisy_ann = augmentate_saltnpeppernoise(flipped_img, flipped_ann, target_noise)
-        if DRAW_BBOXES:
-            noisy_img = draw_annotations(noisy_img, noisy_ann, BBOX_COLOR, BBOX_THICK)
-        cv2.imwrite(os.path.join(folder_images, f"noisy_{int(target_noise*1000)}_flipped_{target_flip}_rotated_{target_angle}_{i.name}"), noisy_img)
-        with open(os.path.join(folder_anns, f"noisy_{int(target_noise*1000)}_flipped_{target_flip}_rotated_{target_angle}_{a.name}"), "w") as f:
-            for ann in noisy_ann:
-                f.write(" ".join(map(str, ann)) + "\n")
+            # Flip augmentation
+            if args.flip:
+                target_flip = random.choice(["h", "v"])
+                new_img, new_ann = augmentate_flip(new_img, new_ann, target_flip)
 
-        # TODO: Make a function for saving images+annotations to disk
+            # Bilateral Blur augmentation
+            if args.bilateral:
+                target_dist = int(random.random() * 23)
+                target_scolor = int(random.random() * 98)
+                target_sspace = int(random.random() * 88)
+                new_img, new_ann = augmentate_bilateral(new_img, new_ann, target_dist, target_scolor, target_sspace)
+
+            # Gaussian Blur augmentation
+            if args.gaussian:
+                target_kw = int(random.randrange(1, 9, 2))
+                target_kh = int(random.randrange(1, 9, 2))
+                target_sigma = random.random() * 25
+                new_img, new_ann = augmentate_gaussianblur(new_img, new_ann, target_kw, target_kh, target_sigma)
+
+            # Shift augmentation
+            target_shift_x = random.random() * (args.shift_max - args.shift_min) + args.shift_min
+            target_shift_y = random.random() * (args.shift_max - args.shift_min) + args.shift_min
+            new_img, new_ann = augmentate_shift(new_img, new_ann, target_shift_x, target_shift_y)
+
+            # Salt and pepper noise augmentation
+            target_noise = random.random() * args.noise
+            new_img, new_ann = augmentate_saltnpeppernoise(new_img, new_ann, target_noise)
+
+            # Drawing bounding boxes
+            if args.draw_bbox:
+                new_img = draw_annotations(new_img, new_ann, BBOX_COLOR, BBOX_THICK)
+            save_to_disk(new_img, new_ann, fname + str(aug_iter), args.folder_images, args.folder_anns)
 
 
 if __name__ == "__main__":

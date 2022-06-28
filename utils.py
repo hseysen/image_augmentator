@@ -82,7 +82,7 @@ def augmentate_flip(image, annotations, flipdir="h"):
     return flipped_img, new_bbox
 
 
-def augmentate_saltnpeppernoise(image, annotations, noise_intensity=0.04):
+def augmentate_saltnpeppernoise(image, annotations, noise_intensity):
     black = np.array([0, 0, 0], dtype="uint8")
     white = np.array([255, 255, 255], dtype="uint8")
     probs = np.random.random(image.shape[:2])
@@ -91,12 +91,35 @@ def augmentate_saltnpeppernoise(image, annotations, noise_intensity=0.04):
     return image, annotations
 
 
-def augmentate_bilateral(image, annotations, dist=23, scolor=98, sspace=88):
+def augmentate_bilateral(image, annotations, dist, scolor, sspace):
     return cv2.bilateralFilter(image, dist, scolor, sspace), annotations
 
 
-def augmentate_gaussianblur(image, annotations, kw=7, kh=7, sigma=25):
+def augmentate_gaussianblur(image, annotations, kw, kh, sigma):
     return cv2.GaussianBlur(image, (kw, kh), sigma), annotations
+
+
+def augmentate_shift(image, annotations, tx, ty, minobjsize=0.035):
+    height = image.shape[0]
+    width = image.shape[1]
+    mx = np.float32([
+        [1, 0, tx],
+        [0, 1, ty]
+    ])
+
+    new_ann = []
+    for obj, cx, cy, wo, ho in annotations:
+        old_ann = yolotocv(cx, cy, wo, ho, height, width)
+        old_ann[0] = clamp_value(old_ann[0] + tx, 0, width)
+        old_ann[1] = clamp_value(old_ann[1] + ty, 0, height)
+        old_ann[2] = clamp_value(old_ann[2] + tx, 0, width)
+        old_ann[3] = clamp_value(old_ann[3] + ty, 0, height)
+        new_dims = cvtoyolo(*old_ann, height, width)
+        if new_dims[2] > minobjsize and new_dims[3] > minobjsize:
+            new_ann.append([obj] + cvtoyolo(*old_ann, height, width))
+
+    shifted = cv2.warpAffine(image, mx, (width, height))
+    return shifted, new_ann
 
 
 def draw_annotations(starting_img, annotations_to_draw, col, thk):
@@ -125,6 +148,7 @@ def main():
     test_saltnpepper = False
     test_bilateral = False
     test_gaussianblur = False
+    test_shift = False
 
     # Load data
     img = cv2.imread(img_dir)
@@ -170,6 +194,14 @@ def main():
                     gaus = draw_annotations(gaus, ann, color, thickness)
                     cv2.imshow(f"Image Gaussian - {w} {h} {s}", gaus)
                     cv2.waitKey(0)
+
+    if test_shift:
+        for dx in range(-150, 151, 10):
+            for dy in range(-150, 151, 10):
+                shft, ann = augmentate_shift(img, original_anns, dx, dy)
+                shft = draw_annotations(shft, ann, color, thickness)
+                cv2.imshow(f"Image Shifted - {dx} {dy}", shft)
+                cv2.waitKey(0)
 
 
 if __name__ == "__main__":
