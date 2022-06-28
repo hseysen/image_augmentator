@@ -3,9 +3,6 @@ import cv2
 from helpers import *
 
 
-# TODO: Add more augmentation methods
-
-
 def augmentate_rotation(image, annotations, angle=45):
     height, width = image.shape[:2]
     image_center = (width / 2, height / 2)
@@ -57,7 +54,8 @@ def augmentate_rotation(image, annotations, angle=45):
                     new_upper_left_corner.append(y_prime)
 
             new_bbox.append([int(bbox[0]), *cvtoyolo(new_upper_left_corner[0], new_upper_left_corner[1],
-                             new_lower_right_corner[0], new_lower_right_corner[1], new_height, new_width)])
+                                                     new_lower_right_corner[0], new_lower_right_corner[1], new_height,
+                                                     new_width)])
 
     return rotated_img, new_bbox, new_height, new_width
 
@@ -122,6 +120,15 @@ def augmentate_shift(image, annotations, tx, ty, minobjsize=0.035):
     return shifted, new_ann
 
 
+def augmentate_hsv(image, annotations, dh, ds):
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(image)
+    h = np.mod(h * dh, 180).astype(np.uint8)
+    s = np.mod(s * ds, 256).astype(np.uint8)
+    image = cv2.cvtColor(cv2.merge([h, s, v]), cv2.COLOR_HSV2BGR)
+    return image, annotations
+
+
 def draw_annotations(starting_img, annotations_to_draw, col, thk):
     nh, nw = starting_img.shape[:2]
     drawn_img = starting_img
@@ -149,6 +156,7 @@ def main():
     test_bilateral = False
     test_gaussianblur = False
     test_shift = False
+    test_hsv = False
 
     # Load data
     img = cv2.imread(img_dir)
@@ -170,7 +178,7 @@ def main():
             cv2.imshow(f"Image Flip - {flip_direction}", flipped)
             cv2.waitKey(0)
 
-    if test_saltnpepper:                        # REMINDER: Noise intensity should be generally low
+    if test_saltnpepper:  # REMINDER: Noise intensity should be generally low
         for noise_int in np.linspace(0, 0.003, 25):
             noisy, ann = augmentate_saltnpeppernoise(img, original_anns, noise_int)
             noisy = draw_annotations(noisy, ann, color, thickness)
@@ -186,7 +194,7 @@ def main():
                     cv2.imshow(f"Image Bilateral - {d} {c} {s}", bil)
                     cv2.waitKey(0)
 
-    if test_gaussianblur:                       # REMINDER: Kernel dimensions should be odd numbers
+    if test_gaussianblur:  # REMINDER: Kernel dimensions should be odd numbers
         for w in range(1, 17, 4):
             for h in range(1, 17, 4):
                 for s in range(0, 100, 50):
@@ -201,6 +209,14 @@ def main():
                 shft, ann = augmentate_shift(img, original_anns, dx, dy)
                 shft = draw_annotations(shft, ann, color, thickness)
                 cv2.imshow(f"Image Shifted - {dx} {dy}", shft)
+                cv2.waitKey(0)
+
+    if test_hsv:
+        for deltah in np.linspace(0, 15, 7):
+            for deltas in np.linspace(0, 3, 7):
+                nhsv, ann = augmentate_hsv(img, original_anns, deltah, deltas)
+                nhsv = draw_annotations(nhsv, ann, color, thickness)
+                cv2.imshow(f"Image Gaussian - {deltah} {deltas}", nhsv)
                 cv2.waitKey(0)
 
 

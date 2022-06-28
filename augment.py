@@ -17,18 +17,32 @@ def save_to_disk(image, annotation, name, i_folder, a_folder):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--folder-images", type=str, required=False, default="./images")
-    parser.add_argument("--folder-anns", type=str, required=False, default="./annotations")
-    parser.add_argument("--rotate-min", type=float, required=False, default=0)
-    parser.add_argument("--rotate-max", type=float, required=False, default=180)
-    parser.add_argument("--flip", type=bool, required=False, default=True)
-    parser.add_argument("--noise", type=float, required=False, default=0.005)
-    parser.add_argument("--bilateral", type=bool, required=False, default=False)
-    parser.add_argument("--gaussian", type=bool, required=False, default=False)
-    parser.add_argument("--shift-min", type=float, required=False, default=0)
-    parser.add_argument("--shift-max", type=float, required=False, default=30)
-    parser.add_argument("--augs", type=int, required=False, default=5)
-    parser.add_argument("--draw-bbox", type=bool, required=False, default=False)
+    parser.add_argument("--folder-images", type=str, required=False, default="./images",
+                        help="The folder where image data are located. Defaults to ./images")
+    parser.add_argument("--folder-anns", type=str, required=False, default="./annotations",
+                        help="The folder where image data are located. Defaults to ./annotations")
+    parser.add_argument("--rotate-min", type=float, required=False, default=0,
+                        help="Minimum rotation angles. Defaults to 0")
+    parser.add_argument("--rotate-max", type=float, required=False, default=180,
+                        help="Maximum rotation angles. Defaults to 180")
+    parser.add_argument("--flip", type=bool, required=False, default=True,
+                        help="Whether or not to flip the images. True by default")
+    parser.add_argument("--noise", type=float, required=False, default=0.005,
+                        help="Maximum Salt & Pepper noise intensity. Defaults to 0.005")
+    parser.add_argument("--bilateral", type=bool, required=False, default=False,
+                        help="Whether or not to apply bilateral blurring to the images. False by default")
+    parser.add_argument("--gaussian", type=bool, required=False, default=False,
+                        help="Whether or not to apply gaussian blurring to the images. False by default")
+    parser.add_argument("--hsv", type=bool, required=False, default=True,
+                        help="Whether or not to apply color manipulation to the images. True by default")
+    parser.add_argument("--shift-min", type=float, required=False, default=-30,
+                        help="Minimum shift in pixels. Defaults to -30")
+    parser.add_argument("--shift-max", type=float, required=False, default=30,
+                        help="Maximum shift in pixels. Defaults to 30")
+    parser.add_argument("--augs", type=int, required=False, default=5,
+                        help="Maximum augmentations for each image. Defaults to 5")
+    parser.add_argument("--draw-bbox", type=bool, required=False, default=False,
+                        help="Whether or not to draw bounding boxes on the images at the end. False by default")
 
     args = parser.parse_args()
 
@@ -54,6 +68,7 @@ def main():
         for aug_iter in range(augs_for_this):
             new_img = original_img.copy()
             new_ann = original_anns.copy()
+
             # Rotation augmentation
             target_angle = random.random() * (args.rotate_max - args.rotate_min) + args.rotate_min
             new_img, new_ann, _, _ = augmentate_rotation(new_img, new_ann, target_angle)
@@ -76,6 +91,12 @@ def main():
                 target_kh = int(random.randrange(1, 9, 2))
                 target_sigma = random.random() * 25
                 new_img, new_ann = augmentate_gaussianblur(new_img, new_ann, target_kw, target_kh, target_sigma)
+
+            # HSV augmentation
+            if args.hsv:
+                target_dh = random.random() * 15 + 0.85
+                target_ds = random.random() * 3 + 0.5
+                new_img, new_ann = augmentate_hsv(new_img, new_ann, target_dh, target_ds)
 
             # Shift augmentation
             target_shift_x = random.random() * (args.shift_max - args.shift_min) + args.shift_min
