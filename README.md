@@ -2,7 +2,17 @@
 ## About
 Just a handy script I've written to help me augmentate image data for training of Machine Learning models. Currently, only supports YOLO annotations, but might work on adding other formats as well in the future.
 
-For now, the augmentator only performs rotation and flipping, but more features will be added later.
+Following image augmentation methods are made available through this project:
+* Rotation - rotates the image in degrees
+* Flip - flips the image vertically and/or horizontally
+* Salt & Pepper - adds noise to the image
+* Bilateral Blur - applies bilateral blur onto the image
+* Gaussian Blur - applies gaussian blur onto the image
+* Shift - shifts the image vertically and/or horizontally by predetermined number of pixels
+* HSV - performs color manipulations on the image
+
+The augmentator aims to preserve the object annotations. To test the annotations bounding boxes, you can use `draw_annotations` function defined in `utils.py`.
+
 
 ## Installation
 Clone the repository and create a Python virtual environment. I've worked with 3.8, but should work with other versions. Install the requirements from `requirements.txt`

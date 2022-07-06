@@ -61,7 +61,6 @@ def main():
         original_img = cv2.imread(i.path)
         with open(a.path, "r") as f:
             original_anns = [list(map(float, a.strip('\n').split(' '))) for a in f.readlines()]
-        # TODO: name files automatically and more clearly
 
         augs_for_this = random.randint(1, args.augs)
 
@@ -107,10 +106,10 @@ def main():
             target_noise = random.random() * args.noise
             new_img, new_ann = augmentate_saltnpeppernoise(new_img, new_ann, target_noise)
 
-            # Drawing bounding boxes
+            # Drawing bounding boxes and saving
             if args.draw_bbox:
                 new_img = draw_annotations(new_img, new_ann, BBOX_COLOR, BBOX_THICK)
-            save_to_disk(new_img, new_ann, fname + str(aug_iter), args.folder_images, args.folder_anns)
+            save_to_disk(new_img, new_ann, fname + f"_augmented_{aug_iter}", args.folder_images, args.folder_anns)
 
 
 if __name__ == "__main__":
