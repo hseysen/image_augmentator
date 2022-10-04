@@ -154,6 +154,12 @@ def augmentate_hsv(image, annotations, dh, ds):
     return image, annotations
 
 
+def augmentate_contrast(image, annotations, alpha, beta):
+    beta += int(round(255 * (1 - alpha) / 2))
+    image = cv2.addWeighted(image, alpha, image, 0, beta)
+    return image, annotations
+
+
 def draw_annotations(starting_img, annotations_to_draw, col, thk):
     nh, nw = starting_img.shape[:2]
     drawn_img = starting_img

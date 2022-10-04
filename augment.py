@@ -37,6 +37,8 @@ def main():
                         help="Whether or not to apply gaussian blurring to the images. False by default")
     parser.add_argument("--hsv", type=bool, required=False, default=True,
                         help="Whether or not to apply color manipulation to the images. True by default")
+    parser.add_argument("--contrast", type=bool, required=False, default=True,
+                        help="Whether or not to apply contrast manipulation to the images. True by default")
     parser.add_argument("--shift-min", type=float, required=False, default=-30,
                         help="Minimum shift in pixels. Defaults to -30")
     parser.add_argument("--shift-max", type=float, required=False, default=30,
@@ -107,6 +109,12 @@ def main():
                 target_dh = random.random() * 15 + 0.85
                 target_ds = random.random() * 3 + 0.5
                 new_img, new_ann = augmentate_hsv(new_img, new_ann, target_dh, target_ds)
+
+            # Contrast augmentation
+            if args.contrast:
+                target_alpha = random.random() * 1.3 + 1
+                target_beta = random.randint(-20, 20)
+                new_img, new_ann = augmentate_contrast(new_img, new_ann, target_alpha, target_beta)
 
             # Shift augmentation
             target_shift_x = random.random() * (args.shift_max - args.shift_min) + args.shift_min
