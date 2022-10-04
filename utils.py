@@ -148,8 +148,8 @@ def augmentate_shift(image, annotations, tx, ty, minobjsize=0.035):
 def augmentate_hsv(image, annotations, dh, ds):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(image)
-    h = np.mod(h * dh, 180).astype(np.uint8)
-    s = np.mod(s * ds, 256).astype(np.uint8)
+    h = np.mod(h + dh, 180).astype(np.uint8)
+    s = np.clip(s * ds, 0, 255).astype(np.uint8)
     image = cv2.cvtColor(cv2.merge([h, s, v]), cv2.COLOR_HSV2BGR)
     return image, annotations
 
@@ -175,8 +175,8 @@ def draw_annotations(starting_img, annotations_to_draw, col, thk):
 
 def main():
     # Configuration
-    img_dir = "./images/input_image.jpg"
-    ann_dir = "./annotations/input_image.txt"
+    img_dir = "images/input_image.jpg"
+    ann_dir = "annotations/input_image.txt"
     color = (0, 122, 255)
     thickness = 4
 

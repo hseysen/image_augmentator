@@ -106,8 +106,8 @@ def main():
 
             # HSV augmentation
             if args.hsv:
-                target_dh = random.random() * 15 + 0.85
-                target_ds = random.random() * 3 + 0.5
+                target_dh = random.random() * 52 + 34
+                target_ds = random.random() * 2.5 + 1.2
                 new_img, new_ann = augmentate_hsv(new_img, new_ann, target_dh, target_ds)
 
             # Contrast augmentation
