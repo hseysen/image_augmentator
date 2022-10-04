@@ -21,14 +21,16 @@ def main():
                         help="The folder where image data are located. Defaults to ./images")
     parser.add_argument("--folder-anns", type=str, required=False, default="./annotations",
                         help="The folder where image data are located. Defaults to ./annotations")
-    parser.add_argument("--rotate-min", type=float, required=False, default=0,
-                        help="Minimum rotation angles. Defaults to 0")
+    parser.add_argument("--rotate-min", type=float, required=False, default=-180,
+                        help="Minimum rotation angles. Defaults to -180")
     parser.add_argument("--rotate-max", type=float, required=False, default=180,
                         help="Maximum rotation angles. Defaults to 180")
+    parser.add_argument("--perspective", type=bool, required=False, default=True,
+                        help="Whether or not to apply perspective transform to the images. False by default")
     parser.add_argument("--flip", type=bool, required=False, default=True,
                         help="Whether or not to flip the images. True by default")
-    parser.add_argument("--noise", type=float, required=False, default=0.005,
-                        help="Maximum Salt & Pepper noise intensity. Defaults to 0.005")
+    parser.add_argument("--noise", type=float, required=False, default=0.002,
+                        help="Maximum Salt & Pepper noise intensity. Defaults to 0.002")
     parser.add_argument("--bilateral", type=bool, required=False, default=False,
                         help="Whether or not to apply bilateral blurring to the images. False by default")
     parser.add_argument("--gaussian", type=bool, required=False, default=False,
@@ -71,6 +73,15 @@ def main():
             # Rotation augmentation
             target_angle = random.random() * (args.rotate_max - args.rotate_min) + args.rotate_min
             new_img, new_ann, _, _ = augmentate_rotation(new_img, new_ann, target_angle)
+
+            # Perspective augmentation
+            if args.perspective:
+                target_dx1 = int(random.random() * 130)
+                target_dx2 = int(random.random() * 130)
+                target_dy1 = int(random.random() * 130)
+                target_dy2 = int(random.random() * 130)
+                new_img, new_ann = augmentate_perspective(new_img, new_ann,
+                                                          target_dx1, target_dx2, target_dy1, target_dy2)
 
             # Flip augmentation
             if args.flip:

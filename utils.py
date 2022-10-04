@@ -25,39 +25,64 @@ def augmentate_rotation(image, annotations, angle=45):
     new_bbox = []
     for bbox in annotations:
         if len(bbox) > 1:
-            (center_x, center_y, bbox_width, bbox_height) = yolotocv(bbox[1], bbox[2], bbox[3], bbox[4], height, width)
+            (x1, y1, x2, y2) = yolotocv(bbox[1], bbox[2], bbox[3], bbox[4], height, width)
 
-            upper_left_corner_shift = (center_x - width / 2, -height / 2 + center_y)
-            upper_right_corner_shift = (bbox_width - width / 2, -height / 2 + center_y)
-            lower_left_corner_shift = (center_x - width / 2, -height / 2 + bbox_height)
-            lower_right_corner_shift = (bbox_width - width / 2, -height / 2 + bbox_height)
+            ul_corner_shift = (x1 - width / 2, y1 - height / 2)
+            ur_corner_shift = (x2 - width / 2, y1 - height / 2)
+            ll_corner_shift = (x1 - width / 2, y2 - height / 2)
+            lr_corner_shift = (x2 - width / 2, y2 - height / 2)
 
-            new_lower_right_corner = [-1, -1]
-            new_upper_left_corner = []
+            new_lr_corner = [-1, -1]
+            new_ul_corner = []
 
-            for i in (upper_left_corner_shift, upper_right_corner_shift,
-                      lower_left_corner_shift, lower_right_corner_shift):
+            for i in (ul_corner_shift, ur_corner_shift,
+                      ll_corner_shift, lr_corner_shift):
                 new_coords = np.matmul(rot_matrix, np.array((i[0], -i[1])))
                 x_prime, y_prime = new_width / 2 + new_coords[0], new_height / 2 - new_coords[1]
-                if new_lower_right_corner[0] < x_prime:
-                    new_lower_right_corner[0] = x_prime
-                if new_lower_right_corner[1] < y_prime:
-                    new_lower_right_corner[1] = y_prime
+                if new_lr_corner[0] < x_prime:
+                    new_lr_corner[0] = x_prime
+                if new_lr_corner[1] < y_prime:
+                    new_lr_corner[1] = y_prime
 
-                if len(new_upper_left_corner) > 0:
-                    if new_upper_left_corner[0] > x_prime:
-                        new_upper_left_corner[0] = x_prime
-                    if new_upper_left_corner[1] > y_prime:
-                        new_upper_left_corner[1] = y_prime
+                if len(new_ul_corner) > 0:
+                    if new_ul_corner[0] > x_prime:
+                        new_ul_corner[0] = x_prime
+                    if new_ul_corner[1] > y_prime:
+                        new_ul_corner[1] = y_prime
                 else:
-                    new_upper_left_corner.append(x_prime)
-                    new_upper_left_corner.append(y_prime)
+                    new_ul_corner.append(x_prime)
+                    new_ul_corner.append(y_prime)
 
-            new_bbox.append([int(bbox[0]), *cvtoyolo(new_upper_left_corner[0], new_upper_left_corner[1],
-                                                     new_lower_right_corner[0], new_lower_right_corner[1], new_height,
+            new_bbox.append([int(bbox[0]), *cvtoyolo(new_ul_corner[0], new_ul_corner[1],
+                                                     new_lr_corner[0], new_lr_corner[1], new_height,
                                                      new_width)])
 
     return rotated_img, new_bbox, new_height, new_width
+
+
+def augmentate_perspective(image, annotations, dx1, dx2, dy1, dy2):
+    height, width = image.shape[:2]
+    pts1 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
+    pts2 = np.float32([[dx1, dy1], [width-dx1, dy2], [dx2, height-dy1], [width-dx2, height-dy2]])
+    m = cv2.getPerspectiveTransform(pts1, pts2)
+
+    image = cv2.warpPerspective(image, m, (width, height))
+
+    new_bbox = []
+    for bbox in annotations:
+        (x_a, y_a, x_b, y_b) = yolotocv(bbox[1], bbox[2], bbox[3], bbox[4], height, width)
+
+        rect_pts = np.array([[[x_a, y_a]], [[x_b, y_a]], [[x_a, y_b]], [[x_b, y_b]]], dtype=np.float32)
+        new_rect = cv2.perspectiveTransform(rect_pts, m)
+
+        new_x_a = new_rect[0][0][0]
+        new_x_b = new_rect[1][0][0]
+        new_y_a = new_rect[0][0][1]
+        new_y_b = new_rect[2][0][1]
+
+        new_bbox.append([int(bbox[0]), *cvtoyolo(new_x_a, new_y_a, new_x_b, new_y_b, height, width)])
+
+    return image, new_bbox
 
 
 def augmentate_flip(image, annotations, flipdir="h"):
