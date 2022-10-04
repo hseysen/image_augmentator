@@ -26,7 +26,7 @@ def main():
     parser.add_argument("--rotate-max", type=float, required=False, default=180,
                         help="Maximum rotation angles. Defaults to 180")
     parser.add_argument("--perspective", type=bool, required=False, default=True,
-                        help="Whether or not to apply perspective transform to the images. False by default")
+                        help="Whether or not to apply perspective transform to the images. True by default")
     parser.add_argument("--flip", type=bool, required=False, default=True,
                         help="Whether or not to flip the images. True by default")
     parser.add_argument("--noise", type=float, required=False, default=0.002,
@@ -39,14 +39,14 @@ def main():
                         help="Whether or not to apply color manipulation to the images. True by default")
     parser.add_argument("--contrast", type=bool, required=False, default=True,
                         help="Whether or not to apply contrast manipulation to the images. True by default")
-    parser.add_argument("--shift-min", type=float, required=False, default=-30,
-                        help="Minimum shift in pixels. Defaults to -30")
-    parser.add_argument("--shift-max", type=float, required=False, default=30,
-                        help="Maximum shift in pixels. Defaults to 30")
+    parser.add_argument("--shift-min", type=float, required=False, default=-40,
+                        help="Minimum shift in pixels. Defaults to -40")
+    parser.add_argument("--shift-max", type=float, required=False, default=40,
+                        help="Maximum shift in pixels. Defaults to 40")
     parser.add_argument("--augs", type=int, required=False, default=5,
                         help="Maximum augmentations for each image. Defaults to 5")
-    parser.add_argument("--draw-bbox", type=bool, required=False, default=False,
-                        help="Whether or not to draw bounding boxes on the images at the end. False by default")
+    parser.add_argument("--draw-bbox", type=bool, required=False, default=True,
+                        help="Whether or not to draw bounding boxes on the images at the end. True by default")
 
     args = parser.parse_args()
 
