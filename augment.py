@@ -112,9 +112,8 @@ def main():
 
             # Contrast augmentation
             if args.contrast:
-                target_alpha = random.random() * 1.3 + 1
-                target_beta = random.randint(-20, 20)
-                new_img, new_ann = augmentate_contrast(new_img, new_ann, target_alpha, target_beta)
+                target_gamma = 0.75
+                new_img, new_ann = augmentate_contrast(new_img, new_ann, target_gamma)
 
             # Shift augmentation
             target_shift_x = random.random() * (args.shift_max - args.shift_min) + args.shift_min

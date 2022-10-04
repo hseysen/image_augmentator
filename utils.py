@@ -154,9 +154,12 @@ def augmentate_hsv(image, annotations, dh, ds):
     return image, annotations
 
 
-def augmentate_contrast(image, annotations, alpha, beta):
-    beta += int(round(255 * (1 - alpha) / 2))
-    image = cv2.addWeighted(image, alpha, image, 0, beta)
+def augmentate_contrast(image, annotations, gamma):
+    lut = []
+    for i in range(256):
+        lut.append((i / 255) ** gamma * 255)
+    lut = np.uint8(lut)
+    image = cv2.LUT(image, lut)
     return image, annotations
 
 
