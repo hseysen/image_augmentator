@@ -4,12 +4,14 @@ Just a handy script I've written to help me augmentate image data for training o
 
 Following image augmentation methods are made available through this project:
 * Rotation - rotates the image in degrees
+* Perspective - applies perspective transform to the image
 * Flip - flips the image vertically and/or horizontally
 * Salt & Pepper - adds noise to the image
 * Bilateral Blur - applies bilateral blur onto the image
 * Gaussian Blur - applies gaussian blur onto the image
 * Shift - shifts the image vertically and/or horizontally by predetermined number of pixels
 * HSV - performs color manipulations on the image
+* Contrast - modifies contrast/brightness property of the image
 
 The augmentator aims to preserve the object annotations. To test the annotations bounding boxes, you can use `draw_annotations` function defined in `utils.py`.
 
