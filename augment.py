@@ -21,32 +21,32 @@ def main():
                         help="The folder where image data are located. Defaults to ./images")
     parser.add_argument("--folder-anns", type=str, required=False, default="./annotations",
                         help="The folder where image data are located. Defaults to ./annotations")
-    parser.add_argument("--rotate-min", type=float, required=False, default=-180,
-                        help="Minimum rotation angles. Defaults to -180")
-    parser.add_argument("--rotate-max", type=float, required=False, default=180,
-                        help="Maximum rotation angles. Defaults to 180")
+    parser.add_argument("--rotate-min", type=float, required=False, default=-90,
+                        help="Minimum rotation angles. Defaults to -90")
+    parser.add_argument("--rotate-max", type=float, required=False, default=90,
+                        help="Maximum rotation angles. Defaults to 90")
     parser.add_argument("--perspective", action="store_true", default=False,
-                        help="Whether or not to apply perspective transform to the images. True by default")
+                        help="Use this flag to apply perspective transform to the images.")
     parser.add_argument("--flip", action="store_true", default=False,
-                        help="Whether or not to flip the images. True by default")
-    parser.add_argument("--noise", type=float, required=False, default=0.002,
-                        help="Maximum Salt & Pepper noise intensity. Defaults to 0.002")
+                        help="Use this flag to flip the images.")
+    parser.add_argument("--noise", type=float, required=False, default=0.001,
+                        help="Maximum Salt & Pepper noise intensity. Defaults to 0.001")
     parser.add_argument("--bilateral", action="store_true", default=False,
-                        help="Whether or not to apply bilateral blurring to the images. False by default")
+                        help="Use this flag to apply bilateral blurring to the images.")
     parser.add_argument("--gaussian", action="store_true", default=False,
-                        help="Whether or not to apply gaussian blurring to the images. False by default")
+                        help="Use this flag to apply gaussian blurring to the images.")
     parser.add_argument("--hsv", action="store_true", default=False,
-                        help="Whether or not to apply color manipulation to the images. True by default")
+                        help="Use this flag to apply color manipulation to the images.")
     parser.add_argument("--contrast", action="store_true", default=False,
-                        help="Whether or not to apply contrast manipulation to the images. True by default")
-    parser.add_argument("--shift-min", type=float, required=False, default=-40,
-                        help="Minimum shift in pixels. Defaults to -40")
-    parser.add_argument("--shift-max", type=float, required=False, default=40,
-                        help="Maximum shift in pixels. Defaults to 40")
+                        help="Use this flag to apply contrast manipulation to the images.")
+    parser.add_argument("--shift-min", type=float, required=False, default=-10,
+                        help="Minimum shift in pixels. Defaults to -10")
+    parser.add_argument("--shift-max", type=float, required=False, default=10,
+                        help="Maximum shift in pixels. Defaults to 10")
     parser.add_argument("--augs", type=int, required=False, default=5,
                         help="Maximum augmentations for each image. Defaults to 5")
     parser.add_argument("--draw-bbox", action="store_true", default=False,
-                        help="Whether or not to draw bounding boxes on the images at the end. True by default")
+                        help="Use this flag to draw bounding boxes on the images at the end.")
 
     args = parser.parse_args()
 
