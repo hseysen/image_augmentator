@@ -49,16 +49,26 @@ def main():
                         help="Maximum augmentations for each image. Defaults to 5")
     parser.add_argument("--draw-bbox", action="store_true", default=False,
                         help="Use this flag to draw bounding boxes on the images at the end.")
+    parser.add_argument("--verbose", action="store_true", default=False,
+                        help="Use this flag to make the augmentation process verbose.")
 
     args = parser.parse_args()
 
     imgs = []
     for i in os.scandir(args.folder_images):
         imgs.append(i)
+    initial_image_count = len(imgs)
+    curr_image_count = initial_image_count
+    if args.verbose:
+        print(f"[Success] Finished loading {initial_image_count} images.")
 
     anns = []
     for a in os.scandir(args.folder_anns):
         anns.append(a)
+    if args.verbose:
+        print(f"[Success] Finished loading {len(anns)} annotations.")
+        if initial_image_count != len(anns):
+            print("[Warning] Number of images does not match the number of annotations!")
 
     for i, a in zip(imgs, anns):
         fname = i.name[:i.name.rfind(".")]
@@ -70,7 +80,11 @@ def main():
 
         augs_for_this = random.randint(1, args.augs)
 
-        for aug_iter in tqdm(range(augs_for_this), desc=f"Augmenting {fname}..."):
+        iters = range(augs_for_this)
+        if args.verbose:
+            iters = tqdm(iters, desc=f"Augmenting {fname}..." )
+
+        for aug_iter in iters:
             new_img = original_img.copy()
             new_ann = original_anns.copy()
 
@@ -136,6 +150,14 @@ def main():
             if args.draw_bbox:
                 new_img = draw_annotations(new_img, new_ann, BBOX_COLOR, BBOX_THICK)
             save_to_disk(new_img, new_ann, fname + f"_augmented_{aug_iter}", args.folder_images, args.folder_anns)
+
+        if args.verbose:
+            print(f"[Success] Finished augmenting {augs_for_this} versions for the image {fname}")
+        curr_image_count += augs_for_this
+
+    if args.verbose:
+        print(f"[Success] Finished augmentation, {initial_image_count} images were supplied, {curr_image_count} "
+              f"images were achieved through augmentation.")
 
 
 if __name__ == "__main__":

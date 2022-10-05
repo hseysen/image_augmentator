@@ -9,4 +9,4 @@ for i in tqdm(range(len(files_list)), desc="Deleting augmented files..."):
 	try:
 		os.remove(f)
 	except OSError:
-		print("Can't delete ", f)
+		print(f"[Error] Can't delete {f}")
