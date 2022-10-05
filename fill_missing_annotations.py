@@ -1,5 +1,7 @@
 import os
 import re
+from tqdm import tqdm
+
 
 pattern = r"^[\D]*"
 xmax = -float("infinity")
@@ -35,7 +37,7 @@ for file in os.listdir(f"./{annotation_dir}"):
 	exists[int(file[re.search(pattern, file).end():file.find(".")])] = True
 
 
-for i in range(xmax + 1):
+for i in tqdm(range(xmax + 1), desc="Creating missing annotations..."):
 	if not exists[i]:
 		with open(f"./{annotation_dir}/{fileword}{i}.txt", "w") as wf:
 			pass

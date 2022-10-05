@@ -1,5 +1,6 @@
 import argparse
 import os
+from tqdm import tqdm
 from utils import *
 
 
@@ -69,7 +70,7 @@ def main():
 
         augs_for_this = random.randint(1, args.augs)
 
-        for aug_iter in range(augs_for_this):
+        for aug_iter in tqdm(range(augs_for_this), desc=f"Augmenting {fname}..."):
             new_img = original_img.copy()
             new_ann = original_anns.copy()
 
