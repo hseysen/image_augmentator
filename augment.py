@@ -1,6 +1,5 @@
 import argparse
 import os
-import random
 from utils import *
 
 
@@ -39,6 +38,8 @@ def main():
                         help="Use this flag to apply color manipulation to the images.")
     parser.add_argument("--contrast", action="store_true", default=False,
                         help="Use this flag to apply contrast manipulation to the images.")
+    parser.add_argument("--sharpness", action="store_true", default=False,
+                        help="Use this flag to apply sharpness manipulation to the images.")
     parser.add_argument("--shift-min", type=float, required=False, default=-10,
                         help="Minimum shift in pixels. Defaults to -10")
     parser.add_argument("--shift-max", type=float, required=False, default=10,
@@ -114,6 +115,12 @@ def main():
             if args.contrast:
                 target_gamma = 0.75
                 new_img, new_ann = augmentate_contrast(new_img, new_ann, target_gamma)
+
+            # Sharpness augmentation
+            if args.sharpness:
+                target_ksize = random.choice([3, 5, 7, 9, 11, 13, 17, 19, 23])
+                target_sigma = random.randint(5, 100)
+                new_img, new_ann = augmentate_sharpness(new_img, new_ann, target_ksize, target_sigma)
 
             # Shift augmentation
             target_shift_x = random.random() * (args.shift_max - args.shift_min) + args.shift_min

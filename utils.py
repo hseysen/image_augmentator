@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from random import randint
+import random
 from helpers import *
 
 
@@ -164,6 +164,11 @@ def augmentate_contrast(image, annotations, gamma):
     return image, annotations
 
 
+def augmentate_sharpness(image, annotations, size, sigma):
+    image = cv2.addWeighted(image, 1.5, cv2.GaussianBlur(image, (size, size), sigma), -0.5, 0, image)
+    return image, annotations
+
+
 def draw_annotations(starting_img, annotations_to_draw, col, thk):
     nh, nw = starting_img.shape[:2]
     drawn_img = starting_img
@@ -194,6 +199,7 @@ def main():
     test_shift = False
     test_hsv = False
     test_contrast = False
+    test_sharpness = False
 
     # Load data
     img = cv2.imread(img_dir)
@@ -210,10 +216,10 @@ def main():
 
     if test_perspective:
         for i in range(5):
-            d1 = randint(1, 90)
-            d2 = randint(1, 90)
-            d3 = randint(1, 90)
-            d4 = randint(1, 90)
+            d1 = random.randint(1, 90)
+            d2 = random.randint(1, 90)
+            d3 = random.randint(1, 90)
+            d4 = random.randint(1, 90)
             warped, ann = augmentate_perspective(img, original_anns, d1, d2, d3, d4)
             warped = draw_annotations(warped, ann, color, thickness)
             cv2.imshow(f"Image Warp - {d1, d2, d3, d4}", warped)
@@ -273,6 +279,14 @@ def main():
             cntrs = draw_annotations(cntrs, ann, color, thickness)
             cv2.imshow(f"Image Contrasted - {g}", cntrs)
             cv2.waitKey(0)
+
+    if test_sharpness:
+        for ksize in [5, 7, 13, 19]:
+            for sharpness_strength in [5, 100, 500]:
+                sharpened, ann = augmentate_sharpness(img, original_anns, ksize, sharpness_strength)
+                sharpened = draw_annotations(sharpened, ann, color, thickness)
+                cv2.imshow(f"Image Sharpened - {ksize, sharpness_strength}", sharpened)
+                cv2.waitKey(0)
 
 
 if __name__ == "__main__":
