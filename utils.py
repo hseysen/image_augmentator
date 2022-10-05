@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+from random import randint
 from helpers import *
 
 
@@ -178,13 +179,14 @@ def draw_annotations(starting_img, annotations_to_draw, col, thk):
 
 def main():
     # Configuration
-    img_dir = "images/input_image.jpg"
-    ann_dir = "annotations/input_image.txt"
+    img_dir = "images/image0.jpg"
+    ann_dir = "annotations/image0.txt"
     color = (0, 122, 255)
     thickness = 4
 
     # Test certain augmentations
     test_rotation = False
+    test_perspective = True
     test_flip = False
     test_saltnpepper = False
     test_bilateral = False
@@ -203,6 +205,17 @@ def main():
             rotated, ann, _, _ = augmentate_rotation(img, original_anns, rot_angle)
             rotated = draw_annotations(rotated, ann, color, thickness)
             cv2.imshow(f"Image Rotate - {rot_angle}", rotated)
+            cv2.waitKey(0)
+
+    if test_perspective:
+        for i in range(5):
+            d1 = randint(1, 90)
+            d2 = randint(1, 90)
+            d3 = randint(1, 90)
+            d4 = randint(1, 90)
+            warped, ann = augmentate_perspective(img, original_anns, d1, d2, d3, d4)
+            warped = draw_annotations(warped, ann, color, thickness)
+            cv2.imshow(f"Image Warp - {d1, d2, d3, d4}", warped)
             cv2.waitKey(0)
 
     if test_flip:
