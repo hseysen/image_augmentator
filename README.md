@@ -12,6 +12,7 @@ Following image augmentation methods are made available through this project:
 * Shift - shifts the image vertically and/or horizontally by predetermined number of pixels
 * HSV - performs color manipulations on the image
 * Contrast - modifies contrast/brightness property of the image
+* Sharpness - sharpens the image
 
 The augmentator aims to preserve the object annotations. To test the annotations bounding boxes, you can use `draw_annotations` function defined in `utils.py`.
 
