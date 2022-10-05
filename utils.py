@@ -186,13 +186,14 @@ def main():
 
     # Test certain augmentations
     test_rotation = False
-    test_perspective = True
+    test_perspective = False
     test_flip = False
     test_saltnpepper = False
     test_bilateral = False
     test_gaussianblur = False
     test_shift = False
     test_hsv = False
+    test_contrast = False
 
     # Load data
     img = cv2.imread(img_dir)
@@ -265,6 +266,13 @@ def main():
                 nhsv = draw_annotations(nhsv, ann, color, thickness)
                 cv2.imshow(f"Image Gaussian - {deltah} {deltas}", nhsv)
                 cv2.waitKey(0)
+
+    if test_contrast:
+        for g in [0.25, 0.33, 0.5, 1, 2, 3, 4]:
+            cntrs, ann = augmentate_contrast(img, original_anns, g)
+            cntrs = draw_annotations(cntrs, ann, color, thickness)
+            cv2.imshow(f"Image Contrasted - {g}", cntrs)
+            cv2.waitKey(0)
 
 
 if __name__ == "__main__":
