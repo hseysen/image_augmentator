@@ -4,10 +4,6 @@ from tqdm import tqdm
 from utils import *
 
 
-BBOX_COLOR = (0, 122, 255)
-BBOX_THICK = 4
-
-
 def save_to_disk(image, annotation, name, i_folder, a_folder):
     cv2.imwrite(os.path.join(i_folder, name + ".jpg"), image)
     with open(os.path.join(a_folder, name + ".txt"), "w") as f:
@@ -21,6 +17,8 @@ def main():
                         help="The folder where image data are located. Defaults to ./images")
     parser.add_argument("--folder-anns", type=str, required=False, default="./annotations",
                         help="The folder where image data are located. Defaults to ./annotations")
+    parser.add_argument("--do-rotation", action="store_true", default=False,
+                        help="Use this flag to apply rotation augmentation to the images.")
     parser.add_argument("--rotate-min", type=float, required=False, default=-90,
                         help="Minimum rotation angles. Defaults to -90")
     parser.add_argument("--rotate-max", type=float, required=False, default=90,
@@ -41,6 +39,8 @@ def main():
                         help="Use this flag to apply contrast manipulation to the images.")
     parser.add_argument("--sharpness", action="store_true", default=False,
                         help="Use this flag to apply sharpness manipulation to the images.")
+    parser.add_argument("--do-shift", action="store_true", default=False,
+                        help="Use this flag to apply shift augmentation to the images.")
     parser.add_argument("--shift-min", type=float, required=False, default=-10,
                         help="Minimum shift in pixels. Defaults to -10")
     parser.add_argument("--shift-max", type=float, required=False, default=10,
@@ -82,15 +82,18 @@ def main():
 
         iters = range(augs_for_this)
         if args.verbose:
-            iters = tqdm(iters, desc=f"Augmenting {fname}..." )
+            iters = tqdm(iters, desc=f"Augmenting {fname}...")
 
         for aug_iter in iters:
             new_img = original_img.copy()
             new_ann = original_anns.copy()
+            for ann in new_ann:
+                ann[0] = int(ann[0])
 
             # Rotation augmentation
-            target_angle = random.random() * (args.rotate_max - args.rotate_min) + args.rotate_min
-            new_img, new_ann, _, _ = augmentate_rotation(new_img, new_ann, target_angle)
+            if args.do_rotation:
+                target_angle = random.random() * (args.rotate_max - args.rotate_min) + args.rotate_min
+                new_img, new_ann, _, _ = augmentate_rotation(new_img, new_ann, target_angle)
 
             # Perspective augmentation
             if args.perspective:
@@ -138,9 +141,10 @@ def main():
                 new_img, new_ann = augmentate_sharpness(new_img, new_ann, target_ksize, target_sigma)
 
             # Shift augmentation
-            target_shift_x = random.random() * (args.shift_max - args.shift_min) + args.shift_min
-            target_shift_y = random.random() * (args.shift_max - args.shift_min) + args.shift_min
-            new_img, new_ann = augmentate_shift(new_img, new_ann, target_shift_x, target_shift_y)
+            if args.do_shift:
+                target_shift_x = random.random() * (args.shift_max - args.shift_min) + args.shift_min
+                target_shift_y = random.random() * (args.shift_max - args.shift_min) + args.shift_min
+                new_img, new_ann = augmentate_shift(new_img, new_ann, target_shift_x, target_shift_y)
 
             # Salt and pepper noise augmentation
             target_noise = random.random() * args.noise
@@ -148,7 +152,7 @@ def main():
 
             # Drawing bounding boxes and saving
             if args.draw_bbox:
-                new_img = draw_annotations(new_img, new_ann, BBOX_COLOR, BBOX_THICK)
+                new_img = draw_annotations(new_img, new_ann, COLOR, THICKNESS)
             save_to_disk(new_img, new_ann, fname + f"_augmented_{aug_iter}", args.folder_images, args.folder_anns)
 
         if args.verbose:

@@ -4,6 +4,10 @@ import random
 from helpers import *
 
 
+COLOR = (0, 122, 255)
+THICKNESS = 4
+
+
 def augmentate_rotation(image, annotations, angle=45):
     height, width = image.shape[:2]
     image_center = (width / 2, height / 2)
@@ -123,7 +127,7 @@ def augmentate_gaussianblur(image, annotations, kw, kh, sigma):
     return cv2.GaussianBlur(image, (kw, kh), sigma), annotations
 
 
-def augmentate_shift(image, annotations, tx, ty, minobjsize=0.035):
+def augmentate_shift(image, annotations, tx, ty, minobjsize=0.001):
     height = image.shape[0]
     width = image.shape[1]
     mx = np.float32([
@@ -182,12 +186,18 @@ def draw_annotations(starting_img, annotations_to_draw, col, thk):
     return drawn_img
 
 
+def test_augmentation(image, annotations, augmentation, *args):
+    result = list(augmentation(image, annotations, *args))
+    augmented = draw_annotations(result[0], result[1], COLOR, THICKNESS)
+    cv2.imshow(f"Image {augmentation.__name__[augmentation.__name__.find('_'):]} - {args}", augmented)
+    print(result[1])
+    cv2.waitKey(0)
+
+
 def main():
     # Configuration
     img_dir = "images/image0.jpg"
     ann_dir = "annotations/image0.txt"
-    color = (0, 122, 255)
-    thickness = 4
 
     # Test certain augmentations
     test_rotation = False
@@ -209,10 +219,7 @@ def main():
     # Perform augmentations for testing
     if test_rotation:
         for rot_angle in np.linspace(0, 360, 15):
-            rotated, ann, _, _ = augmentate_rotation(img, original_anns, rot_angle)
-            rotated = draw_annotations(rotated, ann, color, thickness)
-            cv2.imshow(f"Image Rotate - {rot_angle}", rotated)
-            cv2.waitKey(0)
+            test_augmentation(img, original_anns, augmentate_rotation, rot_angle)
 
     if test_perspective:
         for i in range(5):
@@ -220,73 +227,46 @@ def main():
             d2 = random.randint(1, 90)
             d3 = random.randint(1, 90)
             d4 = random.randint(1, 90)
-            warped, ann = augmentate_perspective(img, original_anns, d1, d2, d3, d4)
-            warped = draw_annotations(warped, ann, color, thickness)
-            cv2.imshow(f"Image Warp - {d1, d2, d3, d4}", warped)
-            cv2.waitKey(0)
+            test_augmentation(img, original_anns, augmentate_perspective, d1, d2, d3, d4)
 
     if test_flip:
         for flip_direction in ["h", "v"]:
-            flipped, ann = augmentate_flip(img, original_anns, flip_direction)
-            flipped = draw_annotations(flipped, ann, color, thickness)
-            cv2.imshow(f"Image Flip - {flip_direction}", flipped)
-            cv2.waitKey(0)
+            test_augmentation(img, original_anns, augmentate_flip, flip_direction)
 
     if test_saltnpepper:  # REMINDER: Noise intensity should be generally low
         for noise_int in np.linspace(0, 0.003, 25):
-            noisy, ann = augmentate_saltnpeppernoise(img, original_anns, noise_int)
-            noisy = draw_annotations(noisy, ann, color, thickness)
-            cv2.imshow(f"Image Salt and Pepper - {noise_int}", noisy)
-            cv2.waitKey(0)
+            test_augmentation(img, original_anns, augmentate_saltnpeppernoise, noise_int)
 
     if test_bilateral:
-        for d in range(10, 20):
+        for d in range(10, 20, 2):
             for c in range(0, 100, 25):
                 for s in range(0, 100, 25):
-                    bil, ann = augmentate_bilateral(img, original_anns, d, c, s)
-                    bil = draw_annotations(bil, ann, color, thickness)
-                    cv2.imshow(f"Image Bilateral - {d} {c} {s}", bil)
-                    cv2.waitKey(0)
+                    test_augmentation(img, original_anns, augmentate_bilateral, d, c, s)
 
     if test_gaussianblur:  # REMINDER: Kernel dimensions should be odd numbers
         for w in range(1, 17, 4):
             for h in range(1, 17, 4):
                 for s in range(0, 100, 50):
-                    gaus, ann = augmentate_gaussianblur(img, original_anns, w, h, s)
-                    gaus = draw_annotations(gaus, ann, color, thickness)
-                    cv2.imshow(f"Image Gaussian - {w} {h} {s}", gaus)
-                    cv2.waitKey(0)
+                    test_augmentation(img, original_anns, augmentate_gaussianblur, w, h, s)
 
     if test_shift:
-        for dx in range(-150, 151, 10):
-            for dy in range(-150, 151, 10):
-                shft, ann = augmentate_shift(img, original_anns, dx, dy)
-                shft = draw_annotations(shft, ann, color, thickness)
-                cv2.imshow(f"Image Shifted - {dx} {dy}", shft)
-                cv2.waitKey(0)
+        for dx in range(-150, 151, 50):
+            for dy in range(-150, 151, 50):
+                test_augmentation(img, original_anns, augmentate_shift, dx, dy)
 
     if test_hsv:
         for deltah in np.linspace(0, 15, 7):
             for deltas in np.linspace(0, 3, 7):
-                nhsv, ann = augmentate_hsv(img, original_anns, deltah, deltas)
-                nhsv = draw_annotations(nhsv, ann, color, thickness)
-                cv2.imshow(f"Image Gaussian - {deltah} {deltas}", nhsv)
-                cv2.waitKey(0)
+                test_augmentation(img, original_anns, augmentate_hsv, deltah, deltas)
 
     if test_contrast:
         for g in [0.25, 0.33, 0.5, 1, 2, 3, 4]:
-            cntrs, ann = augmentate_contrast(img, original_anns, g)
-            cntrs = draw_annotations(cntrs, ann, color, thickness)
-            cv2.imshow(f"Image Contrasted - {g}", cntrs)
-            cv2.waitKey(0)
+            test_augmentation(img, original_anns, augmentate_contrast, g)
 
     if test_sharpness:
         for ksize in [5, 7, 13, 19]:
             for sharpness_strength in [5, 100, 500]:
-                sharpened, ann = augmentate_sharpness(img, original_anns, ksize, sharpness_strength)
-                sharpened = draw_annotations(sharpened, ann, color, thickness)
-                cv2.imshow(f"Image Sharpened - {ksize, sharpness_strength}", sharpened)
-                cv2.waitKey(0)
+                test_augmentation(img, original_anns, augmentate_sharpness, ksize, sharpness_strength)
 
 
 if __name__ == "__main__":
