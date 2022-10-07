@@ -114,9 +114,10 @@ def augmentate_saltnpeppernoise(image, annotations, noise_intensity):
     black = np.array([0, 0, 0], dtype="uint8")
     white = np.array([255, 255, 255], dtype="uint8")
     probs = np.random.random(image.shape[:2])
-    image[probs < (noise_intensity / 2)] = black
-    image[probs > 1 - (noise_intensity / 2)] = white
-    return image, annotations
+    img = image.copy()                                          # just in case
+    img[probs < (noise_intensity / 2)] = black
+    img[probs > 1 - (noise_intensity / 2)] = white
+    return img, annotations
 
 
 def augmentate_bilateral(image, annotations, dist, scolor, sspace):
