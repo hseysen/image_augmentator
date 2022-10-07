@@ -47,8 +47,10 @@ def main():
                         help="Minimum shift in pixels. Defaults to -10")
     parser.add_argument("--shift-max", type=float, required=False, default=10,
                         help="Maximum shift in pixels. Defaults to 10")
-    parser.add_argument("--augs", type=int, required=False, default=5,
-                        help="Maximum augmentations for each image. Defaults to 5")
+    parser.add_argument("--rand-augs", action="store_true", default=False,
+                        help="Use this flag to have random augmentations for each image.")
+    parser.add_argument("--augs", type=int, required=False, default=1,
+                        help="Number of augmentations for each image. Defaults to 1")
     parser.add_argument("--draw-bbox", action="store_true", default=False,
                         help="Use this flag to draw bounding boxes on the images at the end.")
     parser.add_argument("--verbose", action="store_true", default=False,
@@ -80,7 +82,9 @@ def main():
         with open(a.path, "r") as f:
             original_anns = [list(map(float, a.strip('\n').split(' '))) for a in f.readlines()]
 
-        augs_for_this = random.randint(1, args.augs)
+        augs_for_this = args.augs
+        if args.rand_augs:
+            augs_for_this = random.randint(1, args.augs)
 
         for aug_iter in range(augs_for_this):
             new_img = original_img.copy()
