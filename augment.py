@@ -27,6 +27,8 @@ def main():
                         help="Use this flag to apply perspective transform to the images.")
     parser.add_argument("--flip", action="store_true", default=False,
                         help="Use this flag to flip the images.")
+    parser.add_argument("--saltpepper", action="store_true", default=False,
+                        help="Use this flag to add Salt & Pepper noise to the images.")
     parser.add_argument("--noise", type=float, required=False, default=0.001,
                         help="Maximum Salt & Pepper noise intensity. Defaults to 0.001")
     parser.add_argument("--bilateral", action="store_true", default=False,
@@ -147,8 +149,9 @@ def main():
                 new_img, new_ann = augmentate_shift(new_img, new_ann, target_shift_x, target_shift_y)
 
             # Salt and pepper noise augmentation
-            target_noise = random.random() * args.noise
-            new_img, new_ann = augmentate_saltnpeppernoise(new_img, new_ann, target_noise)
+            if args.saltpepper:
+                target_noise = random.random() * args.noise
+                new_img, new_ann = augmentate_saltnpeppernoise(new_img, new_ann, target_noise)
 
             # Drawing bounding boxes and saving
             if args.draw_bbox:
