@@ -55,7 +55,7 @@ def main():
     args = parser.parse_args()
 
     imgs = []
-    for i in os.scandir(args.folder_images):
+    for i in sorted(os.scandir(args.folder_images), key=lambda rf: rf.name):
         imgs.append(i)
     initial_image_count = len(imgs)
     curr_image_count = initial_image_count
@@ -63,7 +63,7 @@ def main():
         print(f"[Success] Finished loading {initial_image_count} images.")
 
     anns = []
-    for a in os.scandir(args.folder_anns):
+    for a in sorted(os.scandir(args.folder_anns), key=lambda rf: rf.name):
         anns.append(a)
     if args.verbose:
         print(f"[Success] Finished loading {len(anns)} annotations.")
