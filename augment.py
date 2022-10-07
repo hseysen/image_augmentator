@@ -72,7 +72,7 @@ def main():
         if initial_image_count != len(anns):
             print("[Warning] Number of images does not match the number of annotations!")
 
-    for i, a in zip(imgs, anns):
+    for i, a in tqdm(zip(imgs, anns), desc="Augmenting images...", total=initial_image_count):
         fname = i.name[:i.name.rfind(".")]
 
         # Extract data from files and set up augmentation parameters
@@ -82,11 +82,7 @@ def main():
 
         augs_for_this = random.randint(1, args.augs)
 
-        iters = range(augs_for_this)
-        if args.verbose:
-            iters = tqdm(iters, desc=f"Augmenting {fname}...")
-
-        for aug_iter in iters:
+        for aug_iter in range(augs_for_this):
             new_img = original_img.copy()
             new_ann = original_anns.copy()
             for ann in new_ann:
@@ -158,8 +154,6 @@ def main():
                 new_img = draw_annotations(new_img, new_ann, COLOR, THICKNESS)
             save_to_disk(new_img, new_ann, fname + f"_augmented_{aug_iter}", args.folder_images, args.folder_anns)
 
-        if args.verbose:
-            print(f"[Success] Finished augmenting {augs_for_this} versions for the image {fname}")
         curr_image_count += augs_for_this
 
     if args.verbose:
@@ -168,5 +162,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # Running this file should generate 2 files in /images and /annotations folders
+    # Running this file should generate augmented files in /images and /annotations folders
     main()
